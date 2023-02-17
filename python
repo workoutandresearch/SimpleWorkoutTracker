@@ -1,0 +1,84 @@
+import datetime
+import json
+import time
+import winsound
+import os
+
+# Set up workout data file
+workout_file = "workout.json"
+try:
+    with open(workout_file, "r") as f:
+        workout_data = json.load(f)
+except FileNotFoundError:
+    workout_data = {"pushups": 0, "curls": 0, "dips": 0, "steps": 0}
+
+# Get current date
+today = datetime.date.today()
+
+# Set workout time to 6pm
+workout_time = datetime.time(hour=18, minute=0)
+
+while True:
+    # Check if it's time to workout
+    now = datetime.datetime.now().time()
+    if now >= workout_time:
+        # Play notification sound
+        winsound.PlaySound("SystemAsterisk", winsound.SND_ALIAS)
+        # Wait for user to acknowledge notification
+        input("It's time to workout! Press enter to start.")
+
+    # Get current data from user
+    print("Enter your workout data for today:")
+    pushups = int(input("Pushups: "))
+    curls = int(input("Bicep Dumbbell Curls: "))
+    dips = int(input("Dips: "))
+    steps = int(input("Steps: "))
+
+    # Update workout data
+    workout_data["pushups"] += pushups
+    workout_data["curls"] += curls
+    workout_data["dips"] += dips
+    workout_data["steps"] += steps
+
+    # Save updated workout data to file
+    with open(workout_file, "w") as f:
+        json.dump(workout_data, f)
+
+    # Calculate total reps and steps for today
+    total_reps = pushups + curls + dips
+    total_steps = steps
+
+    # Calculate total reps and steps for last 7 days
+    week_ago = today - datetime.timedelta(days=7)
+    total_reps_last_week = sum(
+        [
+            workout_data[k]
+            for k in workout_data.keys()
+            if k in ["pushups", "curls", "dips"]
+        ]
+    )
+    total_steps_last_week = workout_data["steps"]
+
+    # Print out today's workout data and last week's total workout data
+    print(f"\nYou did {pushups} pushups, {curls} bicep dumbbell curls, {dips} dips, and {steps} steps today.")
+    print(f"Total reps today: {total_reps}")
+    print(f"Total steps today: {total_steps}")
+    print(f"Last week's total reps: {total_reps_last_week}")
+    print(f"Last week's total steps: {total_steps_last_week}")
+
+    # Save today's workout information to text file
+    with open("workout.txt", "a") as f:
+        f.write(f"{today}: {pushups} pushups, {curls} bicep dumbbell curls, {dips} dips, {steps} steps\n")
+        f.write(f"Total reps today: {total_reps}\n")
+        f.write(f"Total steps today: {total_steps}\n")
+        f.write(f"Last week's total reps: {total_reps_last_week}\n")
+        f.write(f"Last week's total steps: {total_steps_last_week}\n\n")
+
+    # Prompt user to finish the workout
+    finish = input("Finish workout? (yes or no): ").lower()
+    if finish in ("yes", "y"):
+        # Open workout.txt file in default text editor
+        os.startfile("workout.txt")
+        break
+
+# Print
